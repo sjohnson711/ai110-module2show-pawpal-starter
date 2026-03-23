@@ -1,19 +1,26 @@
 # PawPal+ Project Reflection
 
 ## 1. System Design
+
 - The user should be able to add their breed/pet
 - The user should be able to schedule walks or other task throughout the day
-- The user should be able to edit any task on the calendar for that day or any that are planned for the week. 
+- The user should be able to edit any task on the calendar for that day or any that are planned for the week.
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
+- Briefly describe your initial UML design: The initial design involves the app as the scheduler which will handle any conflicts in schedule, generate the schedule, constraints, owner and their pets. The scheduler will also house the plan for the owners.
+
 - What classes did you include, and what responsibilities did you assign to each?
+  : I have created an Owner class that weill be able to add their pets. I wanted to make sure that they would have the capability to create more than one pet profile. The pet class will consist of the name, species, breed, age and the list of tasks that we will define later. The owner will be able to edit the task under the pet profile, show tasks and add task. The Task class will have a description, title, category, duration, priority for the owner, scheduled time, frequncy, real-time status and any constraints. <-----> May place contraints with the Ownwer later.
+
+Class Schedule will have a place to submit the date, pet, task and explanation.
 
 **b. Design changes**
 
+
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+In the latest revision, we added unique IDs to both Pet and Task classes to ensure reliable editing and referencing. We also improved type hints and method signatures for better clarity and maintainability, including specifying return types and using forward references. These changes strengthen relationships between objects and lay a more robust foundation for implementing scheduling and task management logic.
 
 ---
 
