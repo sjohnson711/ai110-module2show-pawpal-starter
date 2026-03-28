@@ -36,6 +36,13 @@ In the latest revision, we added unique IDs to both Pet and Task classes to ensu
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
 
+**Exact time match vs. overlapping durations:**
+The `detect_conflicts()` method only flags two tasks as a conflict when they are scheduled at the exact same `datetime` — for example, both at `17:00`. It does not account for task duration, so a 30-minute walk starting at `16:45` and a feeding task at `17:00` would not be flagged even though they realistically overlap.
+
+This is a deliberate tradeoff. Tasks in the current system do not have a `duration` field, so there is no data available to calculate overlap. Building duration-aware conflict detection would require adding a new field to `Task`, updating every place tasks are created, and writing a more complex range-overlap check along the lines of `task_a.time + task_a.duration > task_b.time`. That added complexity is not justified at this stage of the project.
+
+The exact-match approach is simple, reliable with the data we have, and still catches the most obvious scheduling mistakes — two things literally booked at the same moment. If task duration is added in a future phase, the detection logic in `Scheduler` can be upgraded without changing anything else in the system.
+
 ---
 
 ## 3. AI Collaboration

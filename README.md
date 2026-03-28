@@ -41,3 +41,26 @@ pip install -r requirements.txt
 5. Add tests to verify key behaviors.
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
+
+## Smarter Scheduling
+
+Phase 2 adds intelligent scheduling algorithms to the `Scheduler` class, making PawPal+ more useful and reliable for pet owners.
+
+### Sorting
+
+`sort_by_time()` returns all tasks across every pet ordered by scheduled time, earliest first. Tasks without a time are pushed to the end. Uses Python's `sorted()` with a `lambda` key on `task.time`, falling back to `datetime.max` for timeless tasks.
+
+### Filtering
+
+Two methods allow owners to quickly find the tasks they care about:
+
+- `filter_by_pet_name(pet_name)` — returns all tasks for a specific pet by name (case-insensitive).
+- `filter_tasks(completed, pet_name)` — a flexible combined filter; pass either or both arguments to narrow results by completion status, pet, or both at once.
+
+### Recurring Tasks
+
+`complete_task(pet, task)` marks a task done and automatically schedules the next occurrence for `daily` (+1 day) and `weekly` (+7 days) tasks using Python's `timedelta`. One-time (`once`) and `monthly` tasks are marked complete without generating a follow-up. This keeps the `Scheduler` as the "Brain" — `Task` and `Pet` stay simple.
+
+### Conflict Detection
+
+`detect_conflicts()` scans each pet's task list for tasks booked at the exact same time and returns plain-text warning messages. Conflicts are only flagged within the same pet's schedule. Returns an empty list when no conflicts exist — safe to iterate without any extra checks.

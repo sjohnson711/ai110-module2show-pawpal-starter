@@ -1,4 +1,5 @@
 import streamlit as st
+from pawpal_system import Owner, Pet, Task, Scheduler
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -38,51 +39,78 @@ At minimum, your system should:
 
 st.divider()
 
-st.subheader("Quick Demo Inputs (UI only)")
+st.subheader("Owner & Pet Setup")
 owner_name = st.text_input("Owner name", value="Jordan")
-pet_name = st.text_input("Pet name", value="Mochi")
-species = st.selectbox("Species", ["dog", "cat", "other"])
 
-st.markdown("### Tasks")
-st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
+# Initialize session state for Owner and pets if they don't already exist
+if "owner" not in st.session_state:
+    st.session_state.owner = Owner(name=owner_name)
 
-if "tasks" not in st.session_state:
-    st.session_state.tasks = []
-
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 with col1:
-    task_title = st.text_input("Task title", value="Morning walk")
+    pet_name = st.text_input("Pet name", value="Mochi")
 with col2:
-    duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
-with col3:
-    priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
+    species = st.selectbox("Species", ["dog", "cat", "other"])
 
-if st.button("Add task"):
-    st.session_state.tasks.append(
-        {"title": task_title, "duration_minutes": int(duration), "priority": priority}
-    )
+if st.button("Add Pet"):
+    new_pet = Pet(name=pet_name, species=species)
+    st.session_state.owner.add_pet(new_pet)
+    st.success(f"Added {pet_name} the {species} to {st.session_state.owner.name}'s profile!")
 
-if st.session_state.tasks:
-    st.write("Current tasks:")
-    st.table(st.session_state.tasks)
+if st.session_state.owner.pets:
+    st.write("**Pets:**", ", ".join(p.name for p in st.session_state.owner.pets))
 else:
-    st.info("No tasks yet. Add one above.")
+    st.info("No pets added yet. Add one above.")
+
+st.divider()
+st.markdown("### Tasks")
+st.caption("Select a pet and add tasks to their schedule.")
+
+if st.session_state.owner.pets:
+    pet_names = [p.name for p in st.session_state.owner.pets]
+    selected_pet_name = st.selectbox("Assign task to pet", pet_names)
+    selected_pet = next(p for p in st.session_state.owner.pets if p.name == selected_pet_name)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        task_description = st.text_input("Task description", value="Morning walk")
+    with col2:
+        task_frequency = st.selectbox("Frequency", ["daily", "weekly", "monthly", "once"])
+
+    if st.button("Add Task"):
+        new_task = Task(description=task_description, frequency=task_frequency)
+        selected_pet.add_task(new_task)
+        st.success(f"Added '{task_description}' to {selected_pet.name}'s tasks!")
+
+    for pet in st.session_state.owner.pets:
+        tasks = pet.get_tasks()
+        if tasks:
+            st.write(f"**{pet.name}'s tasks:**")
+            st.table([{"Description": t.description, "Frequency": t.frequency, "Completed": t.completed} for t in tasks])
+else:
+    st.info("Add a pet first to start adding tasks.")
 
 st.divider()
 
 st.subheader("Build Schedule")
-st.caption("This button should call your scheduling logic once you implement it.")
+st.caption("Retrieve and display all tasks across all pets using the Scheduler.")
 
-if st.button("Generate schedule"):
-    st.warning(
-        "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-    )
-    st.markdown(
-        """
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
+if st.button("Generate Schedule"):
+    scheduler = Scheduler(st.session_state.owner)
+    all_tasks = scheduler.get_all_tasks()
+    if all_tasks:
+        st.success("Today's Schedule:")
+        rows = []
+        for task in all_tasks:
+            pet_name_for_task = next(
+                (p.name for p in st.session_state.owner.pets if task in p.tasks), "Unknown"
+            )
+            rows.append({
+                "Pet": pet_name_for_task,
+                "Task": task.description,
+                "Frequency": task.frequency,
+                "Completed": task.completed,
+            })
+        st.table(rows)
+    else:
+        st.warning("No tasks found. Add pets and tasks first.")
